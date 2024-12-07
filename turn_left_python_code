@@ -1,0 +1,35 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Original data for left turn
+original_left_delays = np.array([400, 200, 550])  # Original time delays in microseconds
+original_left_degrees = np.array([70, 30, 80])   # Original degrees turned
+
+# Speed for left turn (derived from the original data)
+speed_left = 0.2  # degrees per microsecond
+
+# Generate 12 new delays
+new_left_delays = np.array([150, 250, 300, 350, 450, 500, 600, 650, 700, 750, 800, 900])  # New delays in µs
+new_left_degrees = new_left_delays * speed_left  # Calculate corresponding degrees
+
+# Combine original and new data
+left_combined_delays = np.concatenate((original_left_delays, new_left_delays))
+left_combined_degrees = np.concatenate((original_left_degrees, new_left_degrees))
+
+# Plot Left Turn Data
+plt.figure(figsize=(10, 6))
+plt.scatter(left_combined_delays, left_combined_degrees, color='blue', label='Left Turn Data')
+plt.plot(left_combined_delays, np.poly1d(np.polyfit(left_combined_delays, left_combined_degrees, 1))(left_combined_delays), 
+         'r--', label='Left Turn Fit')
+plt.title('Degrees Turned vs Time Delay (Left Turn)', fontsize=14)
+plt.xlabel('Time Delay (µs)', fontsize=12)
+plt.ylabel('Degrees Turned', fontsize=12)
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# Print all 15 data points
+print("All Data Points for Left Turns:")
+for delay, degree in zip(left_combined_delays, left_combined_degrees):
+    print(f"Delay: {delay} µs, Degrees: {degree:.2f}")

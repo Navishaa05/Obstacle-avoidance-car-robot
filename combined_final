@@ -1,0 +1,182 @@
+#include <Servo.h>  // Include the Servo library
+
+// Motor control pins
+const int motorA_IN1 = 4;
+const int motorA_IN2 = 5;
+const int motorB_IN3 = 6;
+const int motorB_IN4 = 2;
+const int motorA_ENA = 3;    // Enable pin for Motor A
+const int motorB_ENB = 9;    // Enable pin for Motor B
+int direction = 8;
+// Sensor pins
+const int trigPin = 10;
+const int echoPin = 11;
+
+const int irSensorPin = 12;
+// Servo motor setup
+Servo myServo;
+const int servoPin = 13;     // Servo control pin
+
+// Variables for ultrasonic sensor
+float duration;
+float distance;
+#define Distance 60
+
+bool isObstacleDetected() {
+  return digitalRead(irSensorPin) == LOW; // Returns true if obstacle is detected
+}
+
+// Function to get distance from the ultrasonic sensor
+float getDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  duration = pulseIn(echoPin, HIGH);
+  float distance = (duration * 0.0343) / 2;
+  return distance;
+}
+
+void setup() {
+  Serial.begin(115200);
+  // Set motor pins as OUTPUT
+  pinMode(motorA_IN1, OUTPUT);
+  pinMode(motorA_IN2, OUTPUT);
+  pinMode(motorB_IN3, OUTPUT);
+  pinMode(motorB_IN4, OUTPUT);
+  pinMode(motorA_ENA, OUTPUT);
+  pinMode(motorB_ENB, OUTPUT);
+
+  // Enable motors without using PWM to avoid interference
+  digitalWrite(motorA_ENA, HIGH);
+  digitalWrite(motorB_ENB, HIGH);
+
+  // Set motor direction to move forward initially
+  digitalWrite(motorA_IN1, HIGH);
+  digitalWrite(motorA_IN2, LOW);
+  digitalWrite(motorB_IN3, HIGH);
+  digitalWrite(motorB_IN4, LOW);
+  Serial.println("Motors set to move forward.");
+
+  // Set up ultrasonic sensor pins
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  pinMode(irSensorPin, INPUT);
+  // Attach servo motor
+  myServo.attach(servoPin);
+  myServo.write(90); // Center servo initially
+  Serial.println("Servo centered. Setup complete.");
+}
+
+void loop() {
+  distance = getDistance();
+  if (distance > Distance || distance == 0) {
+    // No object detected, move forward
+    moveForward(400);
+  } else {
+    moveBackward(200);
+    stopMotors();
+    bool pathFound = scanForClearPath();
+    if (!pathFound) {
+      moveBackward(400);
+      moveForward(100);
+      stopMotors();
+      pathFound = scanForClearPath();
+    }
+  }
+  delay(500);
+}
+
+void moveForward(int duration) {
+  if(direction!=4){
+    Serial.print("FORWARD:");
+    Serial.println(distance);
+    direction=4;
+  }
+  digitalWrite(motorA_IN1, HIGH);
+  digitalWrite(motorA_IN2, LOW);
+  digitalWrite(motorB_IN3, HIGH);
+  digitalWrite(motorB_IN4, LOW);
+  delay(duration);
+  stopMotors();
+}
+
+void moveBackward(int duration) {
+  if(direction!=5){
+    Serial.print("BACKWARD:");
+    Serial.println(distance);
+    direction=5;  
+  }
+  digitalWrite(motorA_IN1, LOW);
+  digitalWrite(motorA_IN2, HIGH);
+  digitalWrite(motorB_IN3, LOW);
+  digitalWrite(motorB_IN4, HIGH);
+  delay(duration);
+  stopMotors();
+}
+
+void turnLeft(int duration) {
+  if(direction!=3){
+    Serial.print("LEFT:");
+    Serial.println(distance);
+    direction=3;  
+  }
+  digitalWrite(motorA_IN1, HIGH);
+  digitalWrite(motorA_IN2, LOW);
+  digitalWrite(motorB_IN3, LOW);
+  digitalWrite(motorB_IN4, LOW);
+  delay(duration);
+  stopMotors();
+}
+
+void turnRight(int duration) {
+  if(direction!=2){
+    Serial.print("RIGHT:");
+    Serial.println(distance);
+    direction=2;  
+  }
+  digitalWrite(motorA_IN1, LOW);
+  digitalWrite(motorA_IN2, LOW);
+  digitalWrite(motorB_IN3, HIGH);
+  digitalWrite(motorB_IN4, LOW);
+  delay(duration);
+  stopMotors();
+}
+
+void stopMotors() {
+  digitalWrite(motorA_IN1, LOW);
+  digitalWrite(motorA_IN2, LOW);
+  digitalWrite(motorB_IN3, LOW);
+  digitalWrite(motorB_IN4, LOW);
+}
+
+// Function to scan for a clear path
+bool scanForClearPath() {
+  for (int angle = 90; angle <= 180; angle += 90) {
+    myServo.write(angle);
+    delay(500);
+    distance = getDistance();
+    if (distance > Distance || distance == 0) {
+      turnLeft(600);
+      myServo.write(90);
+      return true;
+    }
+  }
+
+  for (int angle = 90; angle >= 0; angle -= 90) {
+    myServo.write(angle);
+    delay(500);
+    distance = getDistance();
+    if (distance > Distance || distance == 0) {
+      turnRight(600);
+      myServo.write(90);
+      return true;
+    }
+  }
+
+  myServo.write(90);
+  return false;
+}

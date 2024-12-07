@@ -1,0 +1,125 @@
+#include <Servo.h>  // Include the Servo library
+
+const int trigPin = 10;    // Updated Trig Pin to GPIO 10
+const int echoPin = 11;    // Updated Echo Pin to GPIO 11
+const int irPin = 12;      // IR Sensor Pin updated to GPIO 12
+
+Servo myServo;
+
+// Define the pin for the servo motor
+const int servoPin = 9;   // Servo Pin updated to GPIO 13
+
+// Variables to store the duration and distance
+float duration;
+float distance;
+
+// Function to get distance from the ultrasonic sensor
+float getDistance() {
+  // Clear the trigPin by setting it LOW
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  // Set the trigPin HIGH for 10 microseconds to send the trigger signal
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Read the echoPin and measure the duration of the echo signal
+  duration = pulseIn(echoPin, HIGH);
+  // Calculate the distance in centimeters
+  float distance = (duration * 0.0343) / 2;
+  return distance;
+}
+
+bool isPathClear() {
+  int irValue = digitalRead(irPin); 
+  return irValue == HIGH;
+}
+
+void setup() {
+  // Start serial communication
+  Serial.begin(115200);
+
+  // Set trigPin as OUTPUT and echoPin as INPUT
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  // Set the IR pin as INPUT
+  pinMode(irPin, INPUT);
+
+  // Attach the servo motor
+  myServo.attach(servoPin);
+
+  // Set the servo to the center position (90 degrees) initially
+  myServo.write(90);
+}
+
+void loop() {
+  // Check if the IR sensor detects an object
+  if (!isPathClear()) {
+    Serial.println("Object detected by IR sensor!");
+
+    // Get the current distance from the ultrasonic sensor
+    distance = getDistance();
+    Serial.print("Ultrasonic Distance: ");
+    Serial.print(distance);
+    Serial.println(" cm");
+
+    // If ultrasonic sensor detects something close, proceed with avoidance
+    if (distance < 30 && distance > 0) {
+      Serial.println("Obstacle detected within 30 cm! Checking for clear path...");
+
+      // Rotate the servo to the right in 30-degree increments
+      for (int angle = 90; angle <= 150; angle += 30) {
+        myServo.write(angle);  // Move servo to the angle
+        delay(500);            // Wait for the servo to move
+
+        // Measure the distance again at this angle
+        distance = getDistance();
+        Serial.print("Distance at ");
+        Serial.print(angle);
+        Serial.print(" degrees: ");
+        Serial.print(distance);
+        Serial.println(" cm");
+
+        if (distance > 30 || distance == 0) {
+          Serial.println("Clear path found on the right! Move forward.");
+          myServo.write(90);  // Return the servo to center position
+          delay(500);
+          return;             // Exit the loop once a clear path is found
+        }
+      }
+
+      // Rotate the servo to the left in 30-degree increments
+      for (int angle = 90; angle >= 30; angle -= 30) {
+        myServo.write(angle);  // Move servo to the angle
+        delay(500);            // Wait for the servo to move
+
+        // Measure the distance again at this angle
+        distance = getDistance();
+        Serial.print("Distance at ");
+        Serial.print(angle);
+        Serial.print(" degrees: ");
+        Serial.print(distance);
+        Serial.println(" cm");
+
+        if (distance > 30 || distance == 0) {
+          Serial.println("Clear path found on the left! Move forward.");
+          myServo.write(90);  // Return the servo to center position
+          delay(500);
+          return;             // Exit the loop once a clear path is found
+        }
+      }
+
+      // If no clear path is found, keep checking
+      Serial.println("No clear path found! Continue scanning...");
+    } else if (distance >= 30) {
+      Serial.println("Path is clear in front. No need for avoidance.");
+    }
+  } else {
+    Serial.println("No object detected by IR sensor.");
+  }
+
+  // Wait for a short time before taking another reading
+  delay(5000);
+}
