@@ -1,0 +1,21 @@
+import matplotlib.pyplot as plt
+
+# Data
+ultrasonic = [23.5, 5.87, 14.25, 10.84, 15.11, 3.6, 2.3, 5.54, 5.4, 7.48, 6.52, 4.4, 2, 4.89]
+actual = [24.3, 5.5, 14.55, 10.5, 15, 3.5, 2.5, 5.5, 5.5, 7.5, 6.9, 4.5, 2, 4.5]
+
+# Create the plot
+plt.figure(figsize=(10, 6))
+plt.plot(ultrasonic, label='Ultrasonic', color='blue', marker='o')  # Blue line for ultrasonic
+plt.plot(actual, label='Actual', color='orange', marker='x')       # Orange line for actual
+
+# Add titles and labels
+plt.title('Comparison of Ultrasonic and Actual Measurements')
+plt.xlabel('Measurement Index')
+plt.ylabel('Distance (cm)')
+plt.legend()  # Add legend to distinguish the lines
+plt.grid(True)  # Add a grid for better visualization
+
+# Show the plot
+plt.tight_layout()
+plt.show()

@@ -1,0 +1,99 @@
+#include <Servo.h>
+
+// Pin definitions
+const int trigPin = 10;
+const int echoPin = 11;
+const int servoPin = 13;
+
+// Variables
+long duration;
+float distance;
+Servo myServo;
+
+void setup() {
+  // Initialize pins
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  
+  // Attach servo
+  myServo.attach(servoPin);
+  
+  // Set initial position of servo to 90 degrees (center)
+  myServo.write(0);
+  delay(500);  // Allow servo to reach the position
+  int flg = 0;
+  // Start Serial Monitor
+  Serial.begin(9600);
+}
+
+ void loop() {
+   int flg;
+   if(flg == 0){
+    myServo.write(90);
+   }
+   flg = 0;
+    // Serial.println("Hello Guys");
+  // Check distance at initial position (90 degrees)
+ // myServo.write(90);
+  delay(2000);
+  distance = getDistance();
+  if (distance > 30) {
+    Serial.println("Clear path found at 0 degrees");
+    flg = 1;
+    return;
+  }
+
+  // Check distance at 30 degrees to the right
+  myServo.write(180);
+  delay(2000);  // Allow time for servo to reach position
+  distance = getDistance();
+  if (distance > 30) {
+    Serial.println("Clear path found at 120 degrees");
+    flg = 1;
+    return;
+  }
+
+  // Check distance at 30 degrees to the left
+  myServo.write(0);
+  delay(2000);  // Allow time for servo to reach position
+  distance = getDistance();
+  if (distance > 30) {
+    Serial.println("Clear path found at 60 degrees");
+    flg = 1;
+    return;
+  }
+
+  // Check distance at 180 degrees (fully opposite)
+  // myServo.write(180);
+  // delay(2000);  // Allow time for servo to reach position
+  // distance = getDistance();
+  // if (distance > 30) {
+  //   Serial.println("Clear path found at 0 degrees");
+  //   return;
+  // }
+
+  // If no clear path is found at any position
+  if(flg == 0){
+  Serial.println("No clear path found");
+  }
+  delay(5000);
+  // Reset servo to initial position and wait before next check
+ // myServo.write(90);
+  
+}
+
+// Function to get distance from ultrasonic sensor
+float getDistance() {
+  // Send 10us pulse to trigger
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Read echo time
+  duration = pulseIn(echoPin, HIGH);
+
+  // Calculate distance in cm
+  return duration * 0.0343 / 2;
+}

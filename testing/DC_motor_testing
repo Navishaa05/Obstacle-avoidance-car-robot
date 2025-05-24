@@ -1,0 +1,106 @@
+const int motorA_IN1 = 4;  // IN1 for Motor A
+const int motorA_IN2 = 5;  // IN2 for Motor A
+const int motorB_IN3 = 6;  // IN3 for Motor B
+const int motorB_IN4 = 8;  // IN4 for Motor B
+
+const int motorA_ENA = 3;   // Enable A for Motor A (PWM control)
+const int motorB_ENB = 9;  // Enable B for Motor B (PWM control)
+
+void setup() {
+  // Start serial communication
+  Serial.begin(9600);
+
+  // Set motor control pins as OUTPUT
+  pinMode(motorA_IN1, OUTPUT);
+  pinMode(motorA_IN2, OUTPUT);
+  pinMode(motorB_IN3, OUTPUT);
+  pinMode(motorB_IN4, OUTPUT);
+  pinMode(motorA_ENA, OUTPUT);
+  pinMode(motorB_ENB, OUTPUT);
+  
+  // Enable motors at full speed (PWM value of 255)
+  analogWrite(motorA_ENA, 150);
+  analogWrite(motorB_ENB, 150);
+  
+  Serial.println("Motors initialized.");
+  
+  // Perform the forward-backward sequence 5 times
+  for (int i = 0; i < 10; i++) {
+// turnLeft(2000); // Adjust the duration to achieve a 90-degree turn
+// delay(2000);
+  // Turn right by stopping the right motor and moving the left motor
+  turnRight(2000); // Move backward for 1 second  // Move forward for 1 second
+  }
+
+  // Turn left by stopping the left motor and moving the right motor
+   // Adjust the duration to achieve a 90-degree turn
+
+  // Stop the motors after turning
+  stopMotors();
+  Serial.println("Sequence complete.");
+}
+
+void loop() {
+  // Nothing to do in loop
+}
+
+// Function to move backward
+void moveBackward(int duration) {
+  Serial.println("Moving Motors backward...");
+  digitalWrite(motorA_IN1, LOW);
+  digitalWrite(motorA_IN2, HIGH);
+  digitalWrite(motorB_IN3, LOW);
+  digitalWrite(motorB_IN4, HIGH);
+  delay(duration); // Move for specified duration
+  stopMotors();
+}
+
+// Function to move forward
+void moveForward(int duration) {
+  Serial.println("Moving Motors forward...");
+  digitalWrite(motorA_IN1, HIGH);
+  digitalWrite(motorA_IN2, LOW);
+  digitalWrite(motorB_IN3, HIGH);
+  digitalWrite(motorB_IN4, LOW);
+  delay(duration); // Move for specified duration
+  stopMotors();
+}
+
+// Function to turn left
+void turnRight(int duration) {
+  Serial.println("Turning left...");
+  // Stop left motor
+  digitalWrite(motorA_IN1, LOW);
+  digitalWrite(motorA_IN2, LOW);
+  // Move right motor forward
+  digitalWrite(motorB_IN3, HIGH);
+  digitalWrite(motorB_IN4, LOW);
+  delay(duration); // Turn for specified duration
+  stopMotors();
+}
+
+// Function to turn right
+void turnLeft(int duration) {
+  Serial.println("Turning right...");
+  // Move left motor forward
+  digitalWrite(motorA_IN1, HIGH);
+  digitalWrite(motorA_IN2, LOW);
+  // Stop right motor
+  digitalWrite(motorB_IN3, LOW);
+  digitalWrite(motorB_IN4, LOW);
+  delay(duration); // Turn for specified duration
+  stopMotors();
+}
+
+// Function to stop motors
+void stopMotors() {
+  Serial.println("Stopping motors...");
+  digitalWrite(motorA_IN1, LOW);
+  digitalWrite(motorA_IN2, LOW);
+  digitalWrite(motorB_IN3, LOW);
+  digitalWrite(motorB_IN4, LOW);
+  
+  // Optionally, set enable pins to LOW to completely disable the motors
+  // analogWrite(motorA_ENA, 0);
+  // analogWrite(motorB_ENB, 0);
+}
